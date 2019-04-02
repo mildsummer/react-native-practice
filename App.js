@@ -1,8 +1,9 @@
 import React from 'react';
 import * as Animatable from 'react-native-animatable';
 import {
-  StyleSheet, View, Text, FlatList, TouchableWithoutFeedback, AsyncStorage, Button
+  StyleSheet, View, Text, FlatList, TouchableWithoutFeedback, AsyncStorage, Button, Image
 } from 'react-native';
+import { ImagePicker, Permissions } from 'expo';
 import Swiper from 'react-native-swiper';
 import times from 'lodash.times';
 import PinchZoomView from './src/PinchZoomView';
@@ -13,18 +14,25 @@ export default class App extends React.Component {
     super(props);
     this.addItem = this.addItem.bind(this);
     this.clear = this.clear.bind(this);
+    this.pickImage = this.pickImage.bind(this);
     this.syncListItems = this.syncListItems.bind(this);
     this.state = {
       flag: false,
-      listItems: []
+      listItems: [],
+      image: null
     };
     this.loadListItems();
+    Permissions.askAsync(Permissions.CAMERA_ROLL).then(({ status }) => {
+      console.log(status);
+    }).catch((e) => {
+      console.log(e);
+    });
   }
 
-  addItem() {
+  addItem(image = null) {
     const { listItems } = this.state;
     this.setState({
-      listItems: listItems.concat({ key: `アイテム${listItems.length}` })
+      listItems: listItems.concat({ key: `アイテム${listItems.length}`, image })
     }, this.syncListItems);
   }
 
@@ -48,6 +56,15 @@ export default class App extends React.Component {
     }).catch((e) => {
       console.log(e);
     });
+  }
+
+  pickImage() {
+    ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, base64: true })
+      .then((result) => {
+        if (!result.canceled) {
+          this.addItem(result);
+        }
+      });
   }
 
   syncListItems() {
@@ -125,7 +142,12 @@ export default class App extends React.Component {
         <Icon name="login" color="white" size={30} />
         <FlatList
           data={listItems}
-          renderItem={({item}) => <Text>{item.key}</Text>}
+          renderItem={({item}) => (
+            <View>
+              <Text>{item.key}</Text>
+              {item.image ? <Image source={{ uri: item.image.uri }} style={{ width: 50, height: 50 }} /> : null}
+            </View>
+          )}
         />
         <Button
           title="add item"
@@ -134,6 +156,10 @@ export default class App extends React.Component {
         <Button
           title="clear items"
           onPress={this.clear}
+        />
+        <Button
+          title="upload image"
+          onPress={this.pickImage}
         />
       </View>
     );

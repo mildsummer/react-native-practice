@@ -24,7 +24,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.react-native.practice.mildsummer"
+      "bundleIdentifier": "com.react-native.practice.mildsummer",
+      "usesIcloudStorage": true
     }
   }
 }
