@@ -1,6 +1,8 @@
 import React from 'react';
 import * as Animatable from 'react-native-animatable';
-import { StyleSheet, View, Text, TouchableWithoutFeedback } from 'react-native';
+import {
+  StyleSheet, View, Text, FlatList, TouchableWithoutFeedback, AsyncStorage, Button
+} from 'react-native';
 import Swiper from 'react-native-swiper';
 import times from 'lodash.times';
 import PinchZoomView from './src/PinchZoomView';
@@ -9,13 +11,55 @@ import Icon from './src/Icon';
 export default class App extends React.Component {
   constructor(props) {
     super(props);
+    this.addItem = this.addItem.bind(this);
+    this.clear = this.clear.bind(this);
+    this.syncListItems = this.syncListItems.bind(this);
     this.state = {
-      flag: false
+      flag: false,
+      listItems: []
     };
+    this.loadListItems();
+  }
+
+  addItem() {
+    const { listItems } = this.state;
+    this.setState({
+      listItems: listItems.concat({ key: `アイテム${listItems.length}` })
+    }, this.syncListItems);
+  }
+
+  clear() {
+    AsyncStorage.removeItem('listItems').then(() => {
+      this.setState({ listItems: [] });
+    }).catch((e) => {
+      console.log(e);
+    });
+  }
+
+  loadListItems() {
+    AsyncStorage.getItem('listItems').then((data) => {
+      if (data) {
+        try {
+          this.setState({ listItems: JSON.parse(data) });
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    }).catch((e) => {
+      console.log(e);
+    });
+  }
+
+  syncListItems() {
+    const { listItems } = this.state;
+    AsyncStorage.setItem('listItems', JSON.stringify(listItems))
+      .catch((e) => {
+      console.log(e);
+    });
   }
 
   render() {
-    const { flag } = this.state;
+    const { flag, listItems } = this.state;
     return (
       <View style={styles.container}>
         <PinchZoomView>
@@ -78,7 +122,19 @@ export default class App extends React.Component {
             ]}
           />
         </TouchableWithoutFeedback>
-        <Icon name="login" />
+        <Icon name="login" color="white" size={30} />
+        <FlatList
+          data={listItems}
+          renderItem={({item}) => <Text>{item.key}</Text>}
+        />
+        <Button
+          title="add item"
+          onPress={this.addItem}
+        />
+        <Button
+          title="clear items"
+          onPress={this.clear}
+        />
       </View>
     );
   }
