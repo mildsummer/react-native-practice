@@ -4,6 +4,7 @@ import { StyleSheet, View, Text, TouchableWithoutFeedback } from 'react-native';
 import Swiper from 'react-native-swiper';
 import times from 'lodash.times';
 import PinchZoomView from './src/PinchZoomView';
+import Icon from './src/Icon';
 
 export default class App extends React.Component {
   constructor(props) {
@@ -77,6 +78,7 @@ export default class App extends React.Component {
             ]}
           />
         </TouchableWithoutFeedback>
+        <Icon name="login" />
       </View>
     );
   }
